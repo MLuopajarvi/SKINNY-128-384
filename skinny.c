@@ -22,6 +22,22 @@ uint8_t S8 [16][16] = {
 };
 
 
+uint8_t RC [62] = {
+    0x01,0x03,0x07,0x0f,0x1f,0x3e,0x3d,0x3B,0x37,0x2F,0x1E,0x3C,0x39,0x33,0x27,0x0e,
+    0x1d,0x3a,0x35,0x2B,0x16,0x2C,0x18,0x30,0x21,0x02,0x05,0x0B,0x17,0x2E,0x1C,0x38,
+    0x31,0x23,0x06,0x0D,0x1B,0x36,0x2D,0x1A,0x34,0x29,0x12,0x24,0x08,0x11,0x22,0x04,
+        0x09,0x13,0x26,0x0C,0x19,0x32,0x25,0x0A,15,0x2A,0x14,0x28,0x10,0x20
+    };
+
+void printArrayState(unsigned char array[]) {
+
+    int i = 0;
+    printf("Array State:");
+    for(i = 0; i < 16; i++) {
+        printf("%x", array[i]);
+    }
+    printf("\n");
+}
 /**
  * SKINNY-128-384 block cipher encryption.
  * Under 48-byte tweakey at k, encrypt 16-byte plaintext at p and store the 16-byte output at c.
@@ -29,6 +45,7 @@ uint8_t S8 [16][16] = {
  */
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
 
+    // printf("%x %x %x", c, p, k);
     unsigned char wip[16];
     memmove(wip, p, 16);
 
@@ -40,27 +57,21 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
 
 }
 
-// SubCells
 
 void subCells(unsigned char wip[]) {
 
+    unsigned char zeros[16];
     int i; 
-    for( i = 0; i < 16; ++i ){
-        wip[i] = substituteByte(wip[i]);
+    for( i = 0; i < 16; i++ ){
+        zeros[i] = S8[(wip[i] & 0xf0) >> 4][wip[i] & 0x0f];
     }
+    memcpy(wip, zeros, 16);
+    printArrayState(wip);
 }
 
-unsigned char substituteByte(unsigned char byte) {
-    
-    unsigned char firstNibble = (byte & 0xf0) >> 4;
-    unsigned char lastNibble = byte & 0x0f;
+void addConstants(unsigned char wip[]) {
 
-    unsigned char out = S8[firstNibble][lastNibble];
-
-    printf("%x", out);
 }
-
-// AddConstants
 
 // AddRoundTweakey
 

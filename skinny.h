@@ -1,3 +1,8 @@
+void subCells(unsigned char wip[]);
+
+unsigned char substituteByte(unsigned char byte);
+
+void addConstants(unsigned char wip[]);
 
 /**
  * Implement the following API.
@@ -9,7 +14,3 @@
  * Under 48-byte tweakey at k, encrypt 16-byte plaintext at p and store the 16-byte output at c.
  */
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k);
-
-void subCells(unsigned char *c);
-
-unsigned char substituteByte(unsigned char byte);
