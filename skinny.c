@@ -45,7 +45,6 @@ void printArrayState(unsigned char array[]) {
  */
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
 
-    // printf("%x %x %x", c, p, k);
     unsigned char wip[16];
     memmove(wip, p, 16);
 
@@ -60,12 +59,17 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
 
 void subCells(unsigned char wip[]) {
 
-    unsigned char zeros[16];
     int i; 
+
     for( i = 0; i < 16; i++ ){
-        zeros[i] = S8[(wip[i] & 0xf0) >> 4][wip[i] & 0x0f];
+        // Substitute the current bytes with bytes from the S-Box
+        // S8[y][x]
+        // Where y-value = first nibble of the byte
+        // x-value = the second nibble of the byte
+        wip[i] = S8[(wip[i] & 0xf0) >> 4][wip[i] & 0x0f];
     }
-    memcpy(wip, zeros, 16);
+
+    // print to keep track of enc process state
     printArrayState(wip);
 }
 
