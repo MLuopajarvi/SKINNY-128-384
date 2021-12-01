@@ -1,8 +1,10 @@
+#include<stdint.h>
+
 void subCells(unsigned char wip[]);
 
 unsigned char substituteByte(unsigned char byte);
 
-void addConstants(unsigned char wip[]);
+void addConstants(unsigned char wip[], int r);
 
 /**
  * Implement the following API.

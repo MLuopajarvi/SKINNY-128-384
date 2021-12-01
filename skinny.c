@@ -52,7 +52,9 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     // for( r = 0; r < 56; ++r ) {
     //     subCells(wip);
     // }
+    int round = 0;
     subCells(wip);
+    addConstants(wip, round);
 
 }
 
@@ -73,12 +75,28 @@ void subCells(unsigned char wip[]) {
     printArrayState(wip);
 }
 
-void addConstants(unsigned char wip[]) {
+void addConstants(unsigned char wip[], int r) {
+
+    unsigned char  rc = RC[r];
+
+    //                     bit three      bit two     bit one     bit zero
+    wip[0] = wip[0] ^ (0x00|(rc & 0x08)|(rc & 0x04)|(rc & 0x02)|(rc & 0x01));
+    //                     bit five       bit four
+    wip[4] = wip[4] ^ (0x00|(rc & 0x20)|(rc & 0x10));
+
+    wip[8] = wip[8] ^ 0x2;
+
+    printArrayState(wip);
+}
+
+void addRoundTweakey(unsigned char wip[]) {
 
 }
 
-// AddRoundTweakey
+void shiftRows(unsigned char wip[]) {
 
-// ShiftRows
+}
 
-// MixColumns
+void mixColumns(unsigned char wip[]) {
+
+}
