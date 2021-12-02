@@ -4,7 +4,9 @@ void subCells(unsigned char wip[]);
 
 unsigned char substituteByte(unsigned char byte);
 
-void addConstants(unsigned char wip[], int r);
+void addConstants(unsigned char internalState[], int round);
+
+void addRoundTweakey(unsigned char internalState[], const unsigned char *k);
 
 /**
  * Implement the following API.

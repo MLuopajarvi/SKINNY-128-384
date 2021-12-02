@@ -45,21 +45,22 @@ void printArrayState(unsigned char array[]) {
  */
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
 
-    unsigned char wip[16];
-    memmove(wip, p, 16);
+    unsigned char internalState[16];
+    memmove(internalState, p, 16);
 
     // int r;
     // for( r = 0; r < 56; ++r ) {
-    //     subCells(wip);
+    //     subCells(internalState);
     // }
     int round = 0;
-    subCells(wip);
-    addConstants(wip, round);
+    subCells(internalState);
+    addConstants(internalState, round);
+    addRoundTweakey(internalState, k);
 
 }
 
 
-void subCells(unsigned char wip[]) {
+void subCells(unsigned char internalState[]) {
 
     int i; 
 
@@ -68,35 +69,92 @@ void subCells(unsigned char wip[]) {
         // S8[y][x]
         // Where y-value = first nibble of the byte
         // x-value = the second nibble of the byte
-        wip[i] = S8[(wip[i] & 0xf0) >> 4][wip[i] & 0x0f];
+        internalState[i] = S8[(internalState[i] & 0xf0) >> 4][internalState[i] & 0x0f];
     }
 
     // print to keep track of enc process state
-    printArrayState(wip);
+    printArrayState(internalState);
 }
 
-void addConstants(unsigned char wip[], int r) {
+void addConstants(unsigned char internalState[], int r) {
 
     unsigned char  rc = RC[r];
 
-    //                     bit three      bit two     bit one     bit zero
-    wip[0] = wip[0] ^ (0x00|(rc & 0x08)|(rc & 0x04)|(rc & 0x02)|(rc & 0x01));
-    //                     bit five       bit four
-    wip[4] = wip[4] ^ (0x00|(rc & 0x20)|(rc & 0x10));
+    //                                          bit three      bit two     bit one     bit zero
+    internalState[0] = internalState[0] ^ (0x00|(rc & 0x08)|(rc & 0x04)|(rc & 0x02)|(rc & 0x01));
+    //                                          bit five       bit four
+    internalState[4] = internalState[4] ^ (0x00|(rc & 0x20)|(rc & 0x10));
 
-    wip[8] = wip[8] ^ 0x2;
+    internalState[8] = internalState[8] ^ 0x2;
 
-    printArrayState(wip);
+    printArrayState(internalState);
 }
 
-void addRoundTweakey(unsigned char wip[]) {
+void addRoundTweakey(unsigned char internalState[], const unsigned char *k) {
+
+    int i;
+    int j;
+    int z;
+
+    for( i = 0; i < 8; i++) {
+        internalState[i] = internalState[i] ^ k[i];
+    }
+
+    for( j = 16; j < 24; j++) {
+        internalState[j-16] = internalState[j-16] ^ k[j];
+    }
+
+    for( z = 32; z < 40; z++) {
+        internalState[z-32] = internalState[z-32] ^ k[z];
+    }
+
+    printArrayState(internalState);
+
+    // add tk updating
+}
+
+void shiftRows(unsigned char internalState[]) {
 
 }
 
-void shiftRows(unsigned char wip[]) {
+void mixColumns(unsigned char internalState[]) {
 
 }
 
-void mixColumns(unsigned char wip[]) {
 
-}
+/**
+ * first matrix:
+ * 
+ * 0xa3, 0x99, 0x4b, 0x66, 
+ * 0xad, 0x85, 0xa3, 0x45, 
+ * 0x9f, 0x44, 0xe9, 0x2b, 
+ * 0x08, 0xf5, 0x50, 0xcb
+ * 
+ * 
+ */
+
+/**
+ * First tweakey matrix
+ * 
+ * 0xdf, 0x88, 0x95, 0x48, 
+ * 0xcf, 0xc7, 0xea, 0x52, 
+ * 0xd2, 0x96, 0x33, 0x93, 
+ * 0x01, 0x79, 0x74, 0x49,
+ * 
+ * 
+ * second tweakey matrix
+ * 
+ *  0xab, 0x58, 0x8a, 0x34,
+ *  0xa4, 0x7f, 0x1a, 0xb2,
+ *  0xdf, 0xe9, 0xc8, 0x29,
+ *  0x3f, 0xbe, 0xa9, 0xa5
+ * 
+ * 
+ * third tweakey
+ * 
+ *  0xab, 0x1a, 0xfa, 0xc2,
+ *  0x61, 0x10, 0x12, 0xcd,
+ *  0x8c, 0xef, 0x95, 0x26,
+ *  0x18, 0xc3, 0xeb, 0xe8
+ * 
+ */
