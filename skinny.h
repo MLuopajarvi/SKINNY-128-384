@@ -1,13 +1,4 @@
 #include<stdint.h>
-
-void subCells(unsigned char wip[]);
-
-unsigned char substituteByte(unsigned char byte);
-
-void addConstants(unsigned char internalState[], int round);
-
-void addRoundTweakey(unsigned char internalState[], const unsigned char *k);
-
 /**
  * Implement the following API.
  * You can add your own functions above, but don't modify below this line.

@@ -48,6 +48,9 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     unsigned char internalState[16];
     memmove(internalState, p, 16);
 
+    unsigned char tweakey[48];
+    memmove(tweakey, k, 48);
+
     // int r;
     // for( r = 0; r < 56; ++r ) {
     //     subCells(internalState);
@@ -55,12 +58,12 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     int round = 0;
     subCells(internalState);
     addConstants(internalState, round);
-    addRoundTweakey(internalState, k);
+    addRoundTweakey(internalState, tweakey);
 
 }
 
 
-void subCells(unsigned char internalState[]) {
+void subCells(unsigned char *internalState) {
 
     int i; 
 
@@ -76,7 +79,7 @@ void subCells(unsigned char internalState[]) {
     printArrayState(internalState);
 }
 
-void addConstants(unsigned char internalState[], int r) {
+void addConstants(unsigned char *internalState, int r) {
 
     unsigned char  rc = RC[r];
 
@@ -90,7 +93,7 @@ void addConstants(unsigned char internalState[], int r) {
     printArrayState(internalState);
 }
 
-void addRoundTweakey(unsigned char internalState[], const unsigned char *k) {
+void addRoundTweakey(unsigned char *internalState, const unsigned char *k) {
 
     int i;
     int j;
@@ -113,11 +116,17 @@ void addRoundTweakey(unsigned char internalState[], const unsigned char *k) {
     // add tk updating
 }
 
-void shiftRows(unsigned char internalState[]) {
+void updateTweakey(unsigned char *tweakey) {
+    // do permutation
+
+    // update tk2 and tk3 first 2 rows with lsfr
+}
+
+void shiftRows(unsigned char *internalState) {
 
 }
 
-void mixColumns(unsigned char internalState[]) {
+void mixColumns(unsigned char *internalState) {
 
 }
 
