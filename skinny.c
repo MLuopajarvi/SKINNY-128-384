@@ -48,6 +48,8 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     unsigned char internalState[16];
     memmove(internalState, p, 16);
 
+    unsigned char fourByFour[4][4];
+
     unsigned char tweakey[48];
     memmove(tweakey, k, 48);
 
@@ -59,6 +61,7 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     subCells(internalState);
     addConstants(internalState, round);
     addRoundTweakey(internalState, tweakey);
+    shiftRows(internalState);
 
 }
 
@@ -79,6 +82,7 @@ void subCells(unsigned char *internalState) {
     printArrayState(internalState);
 }
 
+
 void addConstants(unsigned char *internalState, int r) {
 
     unsigned char  rc = RC[r];
@@ -92,6 +96,7 @@ void addConstants(unsigned char *internalState, int r) {
 
     printArrayState(internalState);
 }
+
 
 void addRoundTweakey(unsigned char *internalState, const unsigned char *k) {
 
@@ -122,9 +127,47 @@ void updateTweakey(unsigned char *tweakey) {
     // update tk2 and tk3 first 2 rows with lsfr
 }
 
-void shiftRows(unsigned char *internalState) {
 
+void shiftRows(unsigned char *internalState) {
+    // rotate second row 1 place to the right
+
+    // rotate third row 2 places to the right
+
+    // rotate fourth row 3 places to the right
+
+    int m,n;
+    typedef unsigned char fourByFour_t[4][4];
+    fourByFour_t *fourByFour;
+    fourByFour = (fourByFour_t *) internalState;
+
+    int i;
+    int j;
+
+    for ( i = 0; i < 4; i++ ) {
+        unsigned char rowZero  = (*fourByFour)[i][modulo((0 - i), 4)];
+        unsigned char rowOne   = (*fourByFour)[i][modulo((1 - i), 4)];
+        unsigned char rowTwo   = (*fourByFour)[i][modulo((2 - i), 4)];
+        unsigned char rowThree = (*fourByFour)[i][modulo((3 - i), 4)];
+
+        (*fourByFour)[i][0] = rowZero;
+        (*fourByFour)[i][1] = rowOne;  
+        (*fourByFour)[i][2] = rowTwo;
+        (*fourByFour)[i][3] = rowThree;
+    }
+
+    printArrayState(internalState);
 }
+
+int modulo(int x, int mod) {
+    if ( x < 0) {
+        return mod + x;
+    }
+    else if (x > mod) {
+        return mod % x;
+    }
+    return x;
+}
+
 
 void mixColumns(unsigned char *internalState) {
 
@@ -166,4 +209,37 @@ void mixColumns(unsigned char *internalState) {
  *  0x8c, 0xef, 0x95, 0x26,
  *  0x18, 0xc3, 0xeb, 0xe8
  * 
+ */
+
+/**
+ * 
+ * rotation of rows:
+ * 
+ *  0,  1,  2,  3
+ *  7,  4,  5,  6
+ * 10, 11,  8,  9
+ * 13, 14, 15, 12
+ * 
+ * current rotation:
+ * 
+ * cf, bc, c9, aa, 
+ * aa, b9, 98, f3, 
+ * 98, f3, 7b, 8d, 
+ * f3, 7b, 8d, 55
+ * 
+ * what should be: 
+ * 
+ * cf, bc, c9, aa, 
+ * 19, b9, 98, f3, 
+ * b2, f8, 7b, 8d,
+ * e7, 62, 2e, 55
+ * 
+ * 
+ * 
+ * mixColumns bin matrix: 
+ * 1, 0, 1, 1
+ * 1, 0, 0, 0
+ * 0, 1, 1, 0
+ * 1, 0, 1, 0
+ *
  */
