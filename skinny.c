@@ -48,8 +48,6 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     unsigned char internalState[16];
     memmove(internalState, p, 16);
 
-    unsigned char fourByFour[4][4];
-
     unsigned char tweakey[48];
     memmove(tweakey, k, 48);
 
@@ -135,7 +133,6 @@ void shiftRows(unsigned char *internalState) {
 
     // rotate fourth row 3 places to the right
 
-    int m,n;
     typedef unsigned char fourByFour_t[4][4];
     fourByFour_t *fourByFour;
     fourByFour = (fourByFour_t *) internalState;
@@ -157,6 +154,7 @@ void shiftRows(unsigned char *internalState) {
 
     printArrayState(internalState);
 }
+
 
 int modulo(int x, int mod) {
     if ( x < 0) {
@@ -219,22 +217,6 @@ void mixColumns(unsigned char *internalState) {
  *  7,  4,  5,  6
  * 10, 11,  8,  9
  * 13, 14, 15, 12
- * 
- * current rotation:
- * 
- * cf, bc, c9, aa, 
- * aa, b9, 98, f3, 
- * 98, f3, 7b, 8d, 
- * f3, 7b, 8d, 55
- * 
- * what should be: 
- * 
- * cf, bc, c9, aa, 
- * 19, b9, 98, f3, 
- * b2, f8, 7b, 8d,
- * e7, 62, 2e, 55
- * 
- * 
  * 
  * mixColumns bin matrix: 
  * 1, 0, 1, 1
