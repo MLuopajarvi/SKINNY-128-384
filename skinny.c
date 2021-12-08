@@ -27,7 +27,22 @@ uint8_t RC [62] = {
     0x1d,0x3a,0x35,0x2B,0x16,0x2C,0x18,0x30,0x21,0x02,0x05,0x0B,0x17,0x2E,0x1C,0x38,
     0x31,0x23,0x06,0x0D,0x1B,0x36,0x2D,0x1A,0x34,0x29,0x12,0x24,0x08,0x11,0x22,0x04,
         0x09,0x13,0x26,0x0C,0x19,0x32,0x25,0x0A,15,0x2A,0x14,0x28,0x10,0x20
-    };
+};
+
+uint8_t mixColumnsMatrix [4][4] = {
+    1, 0, 1, 1,
+    1, 0, 0, 0,
+    0, 1, 1, 0,
+    1, 0, 1, 0
+};
+
+uint8_t tkPermutation [4][4] = { 
+    9, 15,  8, 13,
+    10, 14, 12, 11,
+    0,  1,  2,  3,
+    4,  5,  6,  7,
+};
+
 
 void printArrayState(unsigned char array[]) {
 
@@ -55,12 +70,15 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     // for( r = 0; r < 56; ++r ) {
     //     subCells(internalState);
     // }
-    int round = 0;
-    subCells(internalState);
-    addConstants(internalState, round);
-    addRoundTweakey(internalState, tweakey);
-    shiftRows(internalState);
-
+    int round;
+    
+    for(round = 0; round < 2; round++) {
+        subCells(internalState);
+        addConstants(internalState, round);
+        addRoundTweakey(internalState, tweakey);
+        shiftRows(internalState);
+        mixColumns(internalState);
+    }
 }
 
 
@@ -120,25 +138,33 @@ void addRoundTweakey(unsigned char *internalState, const unsigned char *k) {
 }
 
 void updateTweakey(unsigned char *tweakey) {
-    // do permutation
+    typedef unsigned char fourByFour_t[4][4];
+    fourByFour_t *fourByFour;
+    fourByFour = (fourByFour_t *) tweakey;
 
-    // update tk2 and tk3 first 2 rows with lsfr
+    int i;
+
+    for ( i = 0; i < 4; i++ ) {
+        unsigned char rowZero  = tkPermutation[i][0];
+        unsigned char rowOne   = tkPermutation[i][1];
+        unsigned char rowTwo   = tkPermutation[i][2];
+        unsigned char rowThree = tkPermutation[i][3];
+
+        (*fourByFour)[i][0] = rowZero;
+        (*fourByFour)[i][1] = rowOne;  
+        (*fourByFour)[i][2] = rowTwo;
+        (*fourByFour)[i][3] = rowThree;
+    }
 }
 
 
 void shiftRows(unsigned char *internalState) {
-    // rotate second row 1 place to the right
-
-    // rotate third row 2 places to the right
-
-    // rotate fourth row 3 places to the right
 
     typedef unsigned char fourByFour_t[4][4];
     fourByFour_t *fourByFour;
     fourByFour = (fourByFour_t *) internalState;
 
     int i;
-    int j;
 
     for ( i = 0; i < 4; i++ ) {
         unsigned char rowZero  = (*fourByFour)[i][modulo((0 - i), 4)];
@@ -168,7 +194,27 @@ int modulo(int x, int mod) {
 
 
 void mixColumns(unsigned char *internalState) {
+    typedef unsigned char fourByFour_t[4][4];
+    fourByFour_t *fourByFour;
+    fourByFour = (fourByFour_t *) internalState;
 
+    int i;
+
+    unsigned char test = ((0xcf*1)^(0x19*0)^(0xb2*1)^(0xe7*1));
+
+    for ( i = 0; i < 4; i++ ) {
+        unsigned char first = (((*fourByFour)[0][i] * mixColumnsMatrix[0][0]) ^ ((*fourByFour)[1][i] * mixColumnsMatrix[0][1]) ^ ((*fourByFour)[2][i] * mixColumnsMatrix[0][2]) ^ ((*fourByFour)[3][i] * mixColumnsMatrix[0][3]));
+        unsigned char second = (((*fourByFour)[0][i] * mixColumnsMatrix[1][0]) ^ ((*fourByFour)[1][i] * mixColumnsMatrix[1][1]) ^ ((*fourByFour)[2][i] * mixColumnsMatrix[1][2]) ^ ((*fourByFour)[3][i] * mixColumnsMatrix[1][3]));  
+        unsigned char third = (((*fourByFour)[0][i] * mixColumnsMatrix[2][0]) ^ ((*fourByFour)[1][i] * mixColumnsMatrix[2][1]) ^ ((*fourByFour)[2][i] * mixColumnsMatrix[2][2]) ^ ((*fourByFour)[3][i] * mixColumnsMatrix[2][3]));
+        unsigned char fourth = (((*fourByFour)[0][i] * mixColumnsMatrix[3][0]) ^ ((*fourByFour)[1][i] * mixColumnsMatrix[3][1]) ^ ((*fourByFour)[2][i] * mixColumnsMatrix[3][2]) ^ ((*fourByFour)[3][i] * mixColumnsMatrix[3][3]));
+    
+        (*fourByFour)[0][i] = first;
+        (*fourByFour)[1][i] = second;
+        (*fourByFour)[2][i] = third;
+        (*fourByFour)[3][i] = fourth;
+    }
+
+    printArrayState(internalState);
 }
 
 
@@ -207,21 +253,12 @@ void mixColumns(unsigned char *internalState) {
  *  0x8c, 0xef, 0x95, 0x26,
  *  0x18, 0xc3, 0xeb, 0xe8
  * 
- */
-
-/**
+ * tk permutation
  * 
- * rotation of rows:
- * 
+ *  9, 15,  8, 13
+ * 10, 14, 12, 11
  *  0,  1,  2,  3
- *  7,  4,  5,  6
- * 10, 11,  8,  9
- * 13, 14, 15, 12
+ *  4,  5,  6,  7
  * 
- * mixColumns bin matrix: 
- * 1, 0, 1, 1
- * 1, 0, 0, 0
- * 0, 1, 1, 0
- * 1, 0, 1, 0
- *
+ * 
  */
