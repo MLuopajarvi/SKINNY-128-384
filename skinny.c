@@ -36,7 +36,7 @@ uint8_t mixColumnsMatrix [4][4] = {
     1, 0, 1, 0
 };
 
-uint8_t tkPermutation [4][4] = { 
+uint8_t tkPermutation [16] = { 
     9, 15,  8, 13,
     10, 14, 12, 11,
     0,  1,  2,  3,
@@ -66,18 +66,15 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     unsigned char tweakey[48];
     memmove(tweakey, k, 48);
 
-    // int r;
-    // for( r = 0; r < 56; ++r ) {
-    //     subCells(internalState);
-    // }
     int round;
     
-    for(round = 0; round < 2; round++) {
+    for(round = 0; round < 56; round++) {
         subCells(internalState);
         addConstants(internalState, round);
         addRoundTweakey(internalState, tweakey);
         shiftRows(internalState);
         mixColumns(internalState);
+        printf("round end\n");
     }
 }
 
@@ -103,10 +100,18 @@ void addConstants(unsigned char *internalState, int r) {
 
     unsigned char  rc = RC[r];
 
-    //                                          bit three      bit two     bit one     bit zero
-    internalState[0] = internalState[0] ^ (0x00|(rc & 0x08)|(rc & 0x04)|(rc & 0x02)|(rc & 0x01));
-    //                                          bit five       bit four
-    internalState[4] = internalState[4] ^ (0x00|(rc & 0x20)|(rc & 0x10));
+    unsigned char bit0 = ((rc >> 0)  & 0x01);
+    unsigned char bit1 = ((rc >> 1)  & 0x01);
+    unsigned char bit2 = ((rc >> 2)  & 0x01);
+    unsigned char bit3 = ((rc >> 3)  & 0x01);
+    unsigned char bit4 = ((rc >> 4)  & 0x01);
+    unsigned char bit5 = ((rc >> 5)  & 0x01);
+    unsigned char bit6 = ((rc >> 6)  & 0x01);
+    unsigned char bit7 = ((rc >> 7)  & 0x01);
+
+    internalState[0] = internalState[0] ^ (0x00|bit3 << 3|bit2 << 2|bit1 << 1|bit0 << 0);
+ 
+    internalState[4] = internalState[4] ^ (0x00|bit5 << 1|bit4 << 0);
 
     internalState[8] = internalState[8] ^ 0x2;
 
@@ -134,26 +139,62 @@ void addRoundTweakey(unsigned char *internalState, const unsigned char *k) {
 
     printArrayState(internalState);
 
-    // add tk updating
+    updateTweakey(k);
 }
 
 void updateTweakey(unsigned char *tweakey) {
-    typedef unsigned char fourByFour_t[4][4];
-    fourByFour_t *fourByFour;
-    fourByFour = (fourByFour_t *) tweakey;
 
     int i;
+    int j;
+    int z;
 
-    for ( i = 0; i < 4; i++ ) {
-        unsigned char rowZero  = tkPermutation[i][0];
-        unsigned char rowOne   = tkPermutation[i][1];
-        unsigned char rowTwo   = tkPermutation[i][2];
-        unsigned char rowThree = tkPermutation[i][3];
+    for ( i = 0; i < 16; i++ ) {
 
-        (*fourByFour)[i][0] = rowZero;
-        (*fourByFour)[i][1] = rowOne;  
-        (*fourByFour)[i][2] = rowTwo;
-        (*fourByFour)[i][3] = rowThree;
+        tweakey[i] = tweakey[tkPermutation[i]];
+
+    }
+
+    for( j = 16; j < 32; j++) {
+        
+        tweakey[j] = tweakey[tkPermutation[j-16] + 16];
+    }
+
+    for( z = 32; z < 48; z++) {
+        tweakey[z] = tweakey[tkPermutation[z-32] + 32];
+    }
+
+    tkLSFR(tweakey);
+}
+
+void tkLSFR(unsigned char *tweakey) {
+
+    int j;
+    int z;
+
+    for( j = 16; j < 24; j++) {
+        unsigned char bit0 = ((tweakey[j] >> 0)  & 0x01);
+        unsigned char bit1 = ((tweakey[j] >> 1)  & 0x01);
+        unsigned char bit2 = ((tweakey[j] >> 2)  & 0x01);
+        unsigned char bit3 = ((tweakey[j] >> 3)  & 0x01);
+        unsigned char bit4 = ((tweakey[j] >> 4)  & 0x01);
+        unsigned char bit5 = ((tweakey[j] >> 5)  & 0x01);
+        unsigned char bit6 = ((tweakey[j] >> 6)  & 0x01);
+        unsigned char bit7 = ((tweakey[j] >> 7)  & 0x01);
+
+        tweakey[j] = ( bit6 << 7| bit5 << 6|bit4 << 5|bit3 << 4|bit2 << 3|bit1 << 2|bit0 << 1|(bit7 ^ bit5) << 0);
+    }
+
+    for( z = 32; z < 40; z++) {
+        unsigned char bit0 = ((tweakey[z] >> 0)  & 0x01);
+        unsigned char bit1 = ((tweakey[z] >> 1)  & 0x01);
+        unsigned char bit2 = ((tweakey[z] >> 2)  & 0x01);
+        unsigned char bit3 = ((tweakey[z] >> 3)  & 0x01);
+        unsigned char bit4 = ((tweakey[z] >> 4)  & 0x01);
+        unsigned char bit5 = ((tweakey[z] >> 5)  & 0x01);
+        unsigned char bit6 = ((tweakey[z] >> 6)  & 0x01);
+        unsigned char bit7 = ((tweakey[z] >> 7)  & 0x01);
+
+        tweakey[z] = ( (bit0 ^ bit6) << 7| bit7 << 6|bit6 << 5|bit5 << 4|bit4 << 3|bit3 << 2|bit2 << 1|bit1  << 0);
     }
 }
 
