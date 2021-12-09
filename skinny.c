@@ -61,10 +61,10 @@ void printArrayState(unsigned char array[]) {
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
 
     unsigned char internalState[16];
-    memmove(internalState, p, 16);
+    memcpy(internalState, p, 16);
 
     unsigned char tweakey[48];
-    memmove(tweakey, k, 48);
+    memcpy(tweakey, k, 48);
 
     int round;
     
@@ -74,8 +74,9 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
         addRoundTweakey(internalState, tweakey);
         shiftRows(internalState);
         mixColumns(internalState);
-        printf("round end\n");
     }
+
+    memcpy(c, internalState, 16);
 }
 
 
@@ -92,7 +93,7 @@ void subCells(unsigned char *internalState) {
     }
 
     // print to keep track of enc process state
-    printArrayState(internalState);
+    //printArrayState(internalState);
 }
 
 
@@ -115,31 +116,31 @@ void addConstants(unsigned char *internalState, int r) {
 
     internalState[8] = internalState[8] ^ 0x2;
 
-    printArrayState(internalState);
+    //printArrayState(internalState);
 }
 
 
-void addRoundTweakey(unsigned char *internalState, const unsigned char *k) {
+void addRoundTweakey(unsigned char *internalState, unsigned char *tweakey) {
 
     int i;
     int j;
     int z;
 
     for( i = 0; i < 8; i++) {
-        internalState[i] = internalState[i] ^ k[i];
+        internalState[i] = internalState[i] ^ tweakey[i];
     }
 
     for( j = 16; j < 24; j++) {
-        internalState[j-16] = internalState[j-16] ^ k[j];
+        internalState[j-16] = internalState[j-16] ^ tweakey[j];
     }
 
     for( z = 32; z < 40; z++) {
-        internalState[z-32] = internalState[z-32] ^ k[z];
+        internalState[z-32] = internalState[z-32] ^ tweakey[z];
     }
 
-    printArrayState(internalState);
+    updateTweakey(tweakey);
 
-    updateTweakey(k);
+    //printArrayState(internalState);
 }
 
 void updateTweakey(unsigned char *tweakey) {
@@ -148,26 +149,29 @@ void updateTweakey(unsigned char *tweakey) {
     int j;
     int z;
 
+    unsigned char temp[48];
+    memcpy(temp, tweakey, 48);
+
     for ( i = 0; i < 16; i++ ) {
-
-        tweakey[i] = tweakey[tkPermutation[i]];
-
+        tweakey[i] = temp[tkPermutation[i]];
     }
-
     for( j = 16; j < 32; j++) {
-        
-        tweakey[j] = tweakey[tkPermutation[j-16] + 16];
+        tweakey[j] = temp[tkPermutation[j-16] + 16];
     }
-
     for( z = 32; z < 48; z++) {
-        tweakey[z] = tweakey[tkPermutation[z-32] + 32];
+        tweakey[z] = temp[tkPermutation[z-32] + 32];
     }
 
+    // for ( i = 0; i < 16; i++ ) {
+    //     printf("%x", tweakey[i]);
+    // }
+    // printf("\n");
     tkLSFR(tweakey);
 }
 
-void tkLSFR(unsigned char *tweakey) {
+void tkLSFR(unsigned char tweakey[]) {
 
+    int i;
     int j;
     int z;
 
@@ -181,8 +185,10 @@ void tkLSFR(unsigned char *tweakey) {
         unsigned char bit6 = ((tweakey[j] >> 6)  & 0x01);
         unsigned char bit7 = ((tweakey[j] >> 7)  & 0x01);
 
-        tweakey[j] = ( bit6 << 7| bit5 << 6|bit4 << 5|bit3 << 4|bit2 << 3|bit1 << 2|bit0 << 1|(bit7 ^ bit5) << 0);
+        tweakey[j] = (0x00|bit6 << 7| bit5 << 6|bit4 << 5|bit3 << 4|bit2 << 3|bit1 << 2|bit0 << 1|(bit7 ^ bit5) << 0);
+        // printf("%x", (0x00|bit6 << 7| bit5 << 6|bit4 << 5|bit3 << 4|bit2 << 3|bit1 << 2|bit0 << 1|(bit7 ^ bit5) << 0));
     }
+    // printf("\n");
 
     for( z = 32; z < 40; z++) {
         unsigned char bit0 = ((tweakey[z] >> 0)  & 0x01);
@@ -194,8 +200,9 @@ void tkLSFR(unsigned char *tweakey) {
         unsigned char bit6 = ((tweakey[z] >> 6)  & 0x01);
         unsigned char bit7 = ((tweakey[z] >> 7)  & 0x01);
 
-        tweakey[z] = ( (bit0 ^ bit6) << 7| bit7 << 6|bit6 << 5|bit5 << 4|bit4 << 3|bit3 << 2|bit2 << 1|bit1  << 0);
+        tweakey[z] = (0x00|(bit0 ^ bit6) << 7| bit7 << 6|bit6 << 5|bit5 << 4|bit4 << 3|bit3 << 2|bit2 << 1|bit1 << 0);
     }
+
 }
 
 
@@ -219,7 +226,7 @@ void shiftRows(unsigned char *internalState) {
         (*fourByFour)[i][3] = rowThree;
     }
 
-    printArrayState(internalState);
+    //printArrayState(internalState);
 }
 
 
@@ -255,7 +262,7 @@ void mixColumns(unsigned char *internalState) {
         (*fourByFour)[3][i] = fourth;
     }
 
-    printArrayState(internalState);
+    //printArrayState(internalState);
 }
 
 

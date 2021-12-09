@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     p = check;
 
     /* run all 4 KATs */
-    for (i = 0; i < 1; i++) {
+    for (i = 0; i < 4; i++) {
         skinny(c, p + 48, p);
         printf("%s\n", !memcmp(c, p + 64, 16) ? "PASS" : "FAIL");
         p += 80;
